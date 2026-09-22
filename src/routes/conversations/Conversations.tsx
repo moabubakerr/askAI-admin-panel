@@ -12,7 +12,7 @@ import { RtlText } from '../../components/RtlText'
 import { Mono, StatusPill } from '../../components/StatusPill'
 import { DASH, formatAbsolute, formatLatency, formatRelative } from '../../lib/format'
 
-type Tab = 'all' | 'unverified' | 'feedback'
+type Tab = 'all' | 'feedback'
 
 const PAGE_LIMIT = 50
 /** The server caps limit at 500; the refined views work within one such page. */
@@ -80,9 +80,8 @@ export default function Conversations() {
 
   const page = query.data
   const rows = page?.rows ?? []
-  const unverified = rows.filter((row) => row.verified === false)
   const feedback = rows.filter((row) => row.rating !== null && row.comment !== null)
-  const visible = tab === 'unverified' ? unverified : tab === 'feedback' ? feedback : rows
+  const visible = tab === 'feedback' ? feedback : rows
   const truncated = page ? page.total > page.rows.length : false
 
   const dirty = JSON.stringify(filters) !== JSON.stringify(EMPTY_FILTERS)
@@ -101,7 +100,6 @@ export default function Conversations() {
               }}
               options={[
                 { value: 'all', label: 'All messages' },
-                { value: 'unverified', label: 'Unverified', count: unverified.length },
                 { value: 'feedback', label: 'Feedback', count: feedback.length },
               ]}
             />
@@ -176,9 +174,9 @@ export default function Conversations() {
 
           {refined && truncated && (
             <p className="text-[11px] leading-relaxed text-ink-3">
-              The API has no filter for the verification flag or for ratings, so this view
-              refines the most recent {REFINED_LIMIT} matching messages — the server's cap.
-              Narrow the date range or search to be sure you are seeing everything.
+              The API has no filter for ratings, so this view refines the most recent{' '}
+              {REFINED_LIMIT} matching messages — the server's cap. Narrow the date range
+              or search to be sure you are seeing everything.
             </p>
           )}
         </div>
@@ -209,7 +207,6 @@ export default function Conversations() {
                   }
             }
             dirty={dirty}
-            tab={tab}
             onOpen={(row) => navigate(`/conversations/${row.message_id}`)}
           />
         )}
@@ -226,13 +223,11 @@ function MessagesTable({
   rows,
   paging,
   dirty,
-  tab,
   onOpen,
 }: {
   rows: MessageRow[]
   paging?: { total: number; limit: number; offset: number; onOffsetChange: (n: number) => void }
   dirty: boolean
-  tab: Tab
   onOpen: (row: MessageRow) => void
 }) {
   const columns: Column<MessageRow>[] = [
@@ -321,14 +316,6 @@ function MessagesTable({
       width: 'w-[124px]',
       render: (row) => (
         <div className="flex flex-wrap gap-1">
-          {row.verified === false && (
-            <StatusPill
-              tone="bad"
-              title="An automatic numeric check rejected the wording of this answer. This is the highest-priority flag on this screen."
-            >
-              Unverified
-            </StatusPill>
-          )}
           {!row.answered && (
             <StatusPill tone="warn" title="The assistant did not answer this question.">
               No answer
@@ -341,7 +328,6 @@ function MessagesTable({
   ]
 
   function tone(row: MessageRow): RowTone {
-    if (row.verified === false) return 'bad'
     if (!row.answered) return 'warn'
     return 'default'
   }
@@ -356,12 +342,7 @@ function MessagesTable({
       onOpen={onOpen}
       paging={paging}
       empty={
-        tab === 'unverified' ? (
-          <EmptyState
-            title="No unverified answers in this page"
-            body="Every answer here passed the automatic numeric check. That is the outcome you want."
-          />
-        ) : dirty ? (
+        dirty ? (
           <EmptyState
             title="No messages match these filters"
             body="There are messages logged, but none in this date range, language, shape or search. Clear the filters to widen the view."
@@ -450,7 +431,6 @@ function FeedbackCards({
                   <Mono title={`Message ${row.message_id}`}>
                     {row.message_id.slice(0, 8)}
                   </Mono>
-                  {row.verified === false && <StatusPill tone="bad">Unverified</StatusPill>}
                   {!row.answered && <StatusPill tone="warn">No answer</StatusPill>}
                 </div>
               </div>

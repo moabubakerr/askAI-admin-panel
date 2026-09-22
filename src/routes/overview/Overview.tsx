@@ -109,17 +109,8 @@ function OverviewBody({ stats }: { stats: Stats }) {
         </KpiCard>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <KpiCard label="Messages" value={formatCount(overall.messages)} />
-        <KpiCard
-          label="Unverified answers"
-          value={formatCount(overall.unverified)}
-          note={
-            overall.unverified > 0
-              ? 'Failed the automatic numeric check'
-              : 'None failed the numeric check'
-          }
-        />
         <KpiCard
           label="Average latency"
           value={hasMessages ? formatLatency(overall.avg_latency_ms) : DASH}

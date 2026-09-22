@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { API_PREFIX } from '../api/client'
-import { useApp, useQueryScope } from '../app/AppContext'
+import { useApp } from '../app/AppContext'
 import { COPY } from '../copy'
-import { formatAbsolute, formatCount, formatRelative } from '../lib/format'
+import { formatAbsolute, formatRelative } from '../lib/format'
 import { Button } from './controls'
 import { Eyebrow } from './StatusPill'
 
@@ -13,7 +12,6 @@ const BUILD = 'build 2026.09.22-1'
 interface NavItem {
   to: string
   label: string
-  badge?: 'unverified'
 }
 
 const GROUPS: Array<{ group: string; items: NavItem[] }> = [
@@ -21,7 +19,7 @@ const GROUPS: Array<{ group: string; items: NavItem[] }> = [
     group: 'Monitoring',
     items: [
       { to: '/', label: 'Overview' },
-      { to: '/conversations', label: 'Conversations', badge: 'unverified' },
+      { to: '/conversations', label: 'Conversations' },
     ],
   },
   {
@@ -94,16 +92,7 @@ export default function Shell() {
 }
 
 function Sidebar() {
-  const { signOut, transport } = useApp()
-  const scope = useQueryScope()
-
-  // The badge reads the same stats payload the Overview uses.
-  const stats = useQuery({
-    queryKey: [...scope, 'stats'],
-    queryFn: () => transport.stats(),
-    staleTime: 60_000,
-  })
-  const unverified = stats.data?.overall.unverified ?? null
+  const { signOut } = useApp()
 
   return (
     <aside
@@ -154,14 +143,6 @@ function Sidebar() {
                       />
                     )}
                     <span className="truncate">{item.label}</span>
-                    {item.badge === 'unverified' && unverified ? (
-                      <span
-                        title={`${unverified} answers failed the automatic numeric check`}
-                        className="tnum shrink-0 rounded-full bg-gold px-1.5 text-[10px] font-semibold text-[#2a0810]"
-                      >
-                        {formatCount(unverified)}
-                      </span>
-                    ) : null}
                   </>
                 )}
               </NavLink>
