@@ -1,0 +1,18 @@
+# The VM builds on Linux from a Windows checkout. Normalise every text file to
+# LF in the index and in the working tree so shell scripts and nginx configs
+# copied into the image do not arrive with CRLF.
+* text=auto eol=lf
+
+# Binary assets must never be touched.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.gz binary

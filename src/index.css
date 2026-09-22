@@ -1,0 +1,88 @@
+@import 'tailwindcss';
+
+@theme {
+  /* SCEAI maroon and gold on cool neutrals. Colour is reserved for refusals,
+     unverified answers, low ratings and dropped-row gaps. */
+  --color-maroon: #8a1538;
+  --color-maroon-hover: #6d1029;
+  --color-maroon-tint: #fdf4f6;
+  --color-maroon-border: #f4d3d8;
+
+  --color-gold: #c9a227;
+  --color-gold-ink: #8a6d0b;
+  --color-gold-tint: #fdf8e8;
+  --color-gold-border: #eedfae;
+
+  --color-ink-1: #101720;
+  --color-ink-2: #2b3442;
+  --color-ink-3: #54647d;
+  --color-ink-4: #8d97a5;
+
+  --color-surface: #ffffff;
+  --color-page: #f4f6f8;
+  --color-sunken: #fbfcfd;
+
+  --color-line: #e3e7ed;
+  --color-line-strong: #cfd6de;
+  --color-rowline: #f4f6f8;
+
+  --color-ok: #1f7a4d;
+  --color-ok-bg: #f1f9f4;
+  --color-warn: #8a6d0b;
+  --color-warn-bg: #fdf8e8;
+  --color-bad: #a3182f;
+  --color-bad-bg: #fdecea;
+  --color-info: #0e6f7c;
+  --color-info-bg: #ecf7f8;
+
+  /* Messages series on the 30-day chart; refusals use maroon. */
+  --color-steel: #46617f;
+
+  --font-sans:
+    'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-arabic:
+    'IBM Plex Sans Arabic', 'IBM Plex Sans', 'Segoe UI', Tahoma, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --radius-card: 10px;
+  --radius-control: 7px;
+
+  --shadow-menu: 0 6px 20px -6px rgb(16 23 32 / 0.16), 0 1px 3px rgb(16 23 32 / 0.06);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-page text-ink-1 font-sans antialiased;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Tabular figures everywhere numbers are compared down a column. */
+.tnum {
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+}
+
+/* Arabic content cells. Chrome stays LTR English. */
+.arabic {
+  font-family: var(--font-arabic);
+}
+
+/* Keyboard focus that reads as deliberate, not as a browser default. */
+:focus-visible {
+  outline: 2px solid var(--color-maroon);
+  outline-offset: 1px;
+}
+
+/* The login panel's faint rotated hairline geometry. */
+.hairline-geometry {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: 46px 46px;
+}

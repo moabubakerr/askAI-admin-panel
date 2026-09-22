@@ -1,0 +1,40 @@
+# Without this the whole node_modules tree is uploaded to the Docker daemon on
+# every VM rebuild. The build installs its own dependencies from the lockfile.
+node_modules
+**/node_modules
+
+# History and tooling
+.git
+.gitignore
+.gitattributes
+.github
+.vscode
+.idea
+
+# Build output — the image builds its own
+dist
+build
+.vite
+**/*.tsbuildinfo
+
+# Local environment. Nothing here is needed at build time, and shipping it
+# would bake local values into the image.
+.env
+.env.*
+!.env.example
+
+# Local artifacts and logs
+*.log
+npm-debug.log*
+coverage
+.DS_Store
+Thumbs.db
+tmp
+scratchpad
+
+# Docs and deployment files are not build inputs
+README.md
+DEPLOY.md
+docker-compose*.yml
+Dockerfile
+.dockerignore

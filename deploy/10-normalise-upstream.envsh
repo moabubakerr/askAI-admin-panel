@@ -1,0 +1,44 @@
+#!/bin/sh
+# Sourced by the nginx entrypoint before the template is rendered, so the
+# exports below are visible to envsubst.
+#
+# Why this exists: proxy_pass in the template ends with a slash, to strip the
+# /api prefix. If API_UPSTREAM also ends with a slash, proxy_pass becomes
+# "http://host:18000//" and every request arrives at the upstream with a
+# doubled slash, which answers 404. That is an easy thing to get wrong in an
+# env file, so it is normalised here rather than left as a trap.
+
+set -eu
+
+API_UPSTREAM="${API_UPSTREAM:-http://host.docker.internal:18000}"
+
+case "$API_UPSTREAM" in
+  */)
+    API_UPSTREAM_TRIMMED="$(printf '%s' "$API_UPSTREAM" | sed 's:/*$::')"
+    echo "10-normalise-upstream: API_UPSTREAM had a trailing slash;" \
+         "using '$API_UPSTREAM_TRIMMED' instead of '$API_UPSTREAM'"
+    API_UPSTREAM="$API_UPSTREAM_TRIMMED"
+    ;;
+esac
+
+# A scheme is required; without one nginx rejects the proxy_pass at startup
+# with a message that does not obviously point back to this variable.
+case "$API_UPSTREAM" in
+  http://*|https://*) ;;
+  *)
+    echo "10-normalise-upstream: API_UPSTREAM='$API_UPSTREAM' has no http:// or"\
+         "https:// scheme. Prefixing http:// so nginx can start." >&2
+    API_UPSTREAM="http://$API_UPSTREAM"
+    ;;
+esac
+
+# The header the API uses to identify its caller. Both are substituted into the
+# template, so neither may be empty: "proxy_set_header ;" is a config error and
+# the container would restart-loop.
+API_CALLER_HEADER="${API_CALLER_HEADER:-X-Caller}"
+API_CALLER="${API_CALLER:-scai-admin-panel}"
+
+export API_UPSTREAM API_CALLER_HEADER API_CALLER
+
+echo "10-normalise-upstream: proxying /api/ -> ${API_UPSTREAM}/ " \
+     "with ${API_CALLER_HEADER}: ${API_CALLER}"

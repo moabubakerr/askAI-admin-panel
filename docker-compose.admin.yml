@@ -1,0 +1,45 @@
+services:
+  askai-admin-panel:
+    build: .
+    image: askai-admin-panel:latest
+    container_name: askai-admin-panel
+    restart: unless-stopped
+
+    ports:
+      # 17100 on the VM. 17000, 17800, 17900, 18000, 8080, 8210 and 3000 are
+      # taken by other services. 8080 is the container's own port and is not
+      # published as 8080 on the host.
+      - "17100:8080"
+
+    environment:
+      # Where /api/* is proxied. The default is the VM host's published API
+      # port, reached through host.docker.internal, which always resolves from
+      # /etc/hosts — so nginx starts whether or not the API is running, and an
+      # API that is down is a 502 on /api rather than a panel that will not
+      # come up.
+      #
+      # The alternative is the API's service name on the shared network:
+      #   API_UPSTREAM: http://askai-api:8000
+      # Tidier, and it keeps the traffic off the host's published port, but
+      # nginx resolves that name once at startup and exits if it cannot. The
+      # whole panel then goes down whenever the API container is absent,
+      # renamed, or simply started after this one. Do not make it the default.
+      API_UPSTREAM: ${API_UPSTREAM:-http://host.docker.internal:18000}
+
+      # Identity, applied server-side with proxy_set_header so the browser
+      # cannot forge it. Change API_CALLER_HEADER if the API reads a different
+      # header name. Neither may be empty.
+      API_CALLER_HEADER: ${API_CALLER_HEADER:-X-Caller}
+      API_CALLER: ${API_CALLER:-scai-admin-panel}
+
+    extra_hosts:
+      # Required for the default API_UPSTREAM above. Without it
+      # host.docker.internal does not resolve on Linux.
+      - "host.docker.internal:host-gateway"
+
+    networks:
+      - kap_shared_network
+
+networks:
+  kap_shared_network:
+    external: true
