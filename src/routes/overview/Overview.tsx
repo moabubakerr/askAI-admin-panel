@@ -7,7 +7,12 @@ import type {
   LanguageStatsRow,
   Stats,
 } from '../../api/types'
-import { ColumnChart, HBar } from '../../components/BarSeries'
+import {
+  ColumnChart,
+  HBar,
+  SERIES_ANSWERED,
+  SERIES_REFUSALS,
+} from '../../components/BarSeries'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState, LoadingState } from '../../components/ErrorState'
 import { KpiCard, Panel } from '../../components/KpiCard'
@@ -67,9 +72,9 @@ function OverviewBody({ stats }: { stats: Stats }) {
         </div>
       )}
 
-      {/* items-start: the two cards size to their content rather than one
-          stretching to leave a void under the shorter panel. */}
-      <div className="grid grid-cols-2 items-start gap-4">
+      {/* Equal height, with each card's body free to fill, so the shorter
+          panel does not leave a void beside the taller one. */}
+      <div className="grid grid-cols-2 gap-4">
         <KpiCard
           label="Refusal rate"
           stripe="maroon"
@@ -220,7 +225,7 @@ function LanguageColumn({
         <p className="mt-1.5 text-[11px] text-ink-4">No messages in {title}.</p>
       ) : (
         <>
-          <div className="tnum mt-1.5 text-[20px] font-semibold leading-6 text-ink-1">
+          <div className="mt-1.5 text-[20px] font-semibold leading-6 text-ink-1">
             {formatPercent(row.refusal_rate_pct)}
           </div>
           <div className="mt-2 flex flex-col gap-1.5 text-[11px] text-ink-3">
@@ -279,9 +284,9 @@ function RatingDistribution({ stats }: { stats: Stats }) {
   const max = Math.max(...[1, 2, 3, 4, 5].map((r) => counts.get(r) ?? 0), 1)
 
   return (
-    <div className="border-t border-line pt-3">
+    <div className="flex flex-1 flex-col border-t border-line pt-3">
       <Eyebrow>Rating distribution</Eyebrow>
-      <div className="mt-2 flex flex-col gap-1">
+      <div className="mt-2 flex flex-1 flex-col justify-between gap-1.5">
         {[5, 4, 3, 2, 1].map((rating) => {
           const n = counts.get(rating) ?? 0
           return (
@@ -292,6 +297,7 @@ function RatingDistribution({ stats }: { stats: Stats }) {
                 max={max}
                 tone={rating <= 2 ? 'maroon' : rating === 3 ? 'gold' : 'ok'}
                 width="w-full"
+                thick
               />
               <span className="tnum w-8 text-right text-ink-2">{formatCount(n)}</span>
             </div>
@@ -461,17 +467,16 @@ function DailyChart({ stats, className }: { stats: Stats; className?: string }) 
       ) : (
         <div className="px-4 py-3.5">
           <ColumnChart
+            caption="Messages answered and refused, by day, over the last 30 days"
+            unitLabel="messages"
             columns={days.map((day, index) => ({
-              label: formatAbsolute(`${day.day}T00:00:00Z`).slice(0, 11),
+              label: formatDay(`${day.day}T00:00:00Z`),
               axisLabel: index % 5 === 0 ? formatDay(`${day.day}T00:00:00Z`) : '',
               values: { messages: day.messages - day.refusals, refusals: day.refusals },
-              title: `${formatDay(`${day.day}T00:00:00Z`)}\nMessages: ${formatCount(
-                day.messages,
-              )}\nRefusals: ${formatCount(day.refusals)}`,
             }))}
             series={[
-              { key: 'refusals', label: 'Refusals', className: 'bg-maroon' },
-              { key: 'messages', label: 'Answered', className: 'bg-steel' },
+              { key: 'refusals', label: 'Refused', color: SERIES_REFUSALS },
+              { key: 'messages', label: 'Answered', color: SERIES_ANSWERED },
             ]}
             mode="stacked"
             height={158}

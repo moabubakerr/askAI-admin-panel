@@ -5,7 +5,7 @@ import { useApp, useQueryScope } from '../../app/AppContext'
 import { ApiError } from '../../api/transport'
 import type { CatalogueDetail } from '../../api/types'
 import { COPY } from '../../copy'
-import { ColumnChart } from '../../components/BarSeries'
+import { ColumnChart, SERIES_ACTUAL, SERIES_TARGET } from '../../components/BarSeries'
 import { Chip } from '../../components/controls'
 import { CopyDigest } from '../../components/CopyDigest'
 import { EmptyState } from '../../components/EmptyState'
@@ -218,7 +218,8 @@ function Detail({ detail }: { detail: CatalogueDetail }) {
               <ColumnChart
                 mode="grouped"
                 height={188}
-                formatTick={(value) => formatValue(value)}
+                caption={`Actual against target for ${detail.name_en ?? 'this indicator'}, by period`}
+                formatValue={(value) => formatValue(value)}
                 columns={series.map((point, index) => ({
                   label: point.period_label ?? '',
                   axisLabel:
@@ -226,15 +227,10 @@ function Detail({ detail }: { detail: CatalogueDetail }) {
                       ? (point.period_label ?? '')
                       : '',
                   values: { actual: point.actual, target: point.target },
-                  title: `${point.period_label ?? DASH}\nActual: ${formatValue(
-                    point.actual,
-                  )}\nTarget: ${formatValue(point.target)}${
-                    point.outlook !== null ? `\nOutlook: ${formatValue(point.outlook)}` : ''
-                  }`,
                 }))}
                 series={[
-                  { key: 'actual', label: 'Actual', className: 'bg-maroon' },
-                  { key: 'target', label: 'Target', className: 'bg-line-strong' },
+                  { key: 'actual', label: 'Actual', color: SERIES_ACTUAL },
+                  { key: 'target', label: 'Target', color: SERIES_TARGET },
                 ]}
               />
 
