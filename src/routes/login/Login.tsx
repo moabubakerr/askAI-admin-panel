@@ -4,7 +4,6 @@ import { MOCK_PASSWORD, MOCK_USERNAME } from '../../api/mock'
 import { useApp } from '../../app/AppContext'
 import { COPY } from '../../copy'
 import { TextInput } from '../../components/controls'
-import { Eyebrow } from '../../components/StatusPill'
 
 export default function Login() {
   const { signIn, apiDisabled, sessionEnded, mock } = useApp()
@@ -42,49 +41,42 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-full">
-      {/* Left: institutional panel in the dark plum gradient. */}
+    // One background across the whole page, in the same dark plum gradient the
+    // sidebar uses. No split panel.
+    <div
+      className="hairline-geometry relative flex min-h-full items-center justify-center overflow-hidden px-6 py-12"
+      style={{ background: 'linear-gradient(180deg,#2a0810,#170609)' }}
+    >
       <div
-        className="hairline-geometry relative hidden w-[46%] shrink-0 overflow-hidden lg:block"
-        style={{ background: 'linear-gradient(180deg,#2a0810,#170609)' }}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 top-16 size-[420px] rotate-[24deg] border border-white/8"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-32 bottom-8 size-[360px] rotate-[18deg] border border-white/6"
-        />
-        {/* Brand lockup only, centred. The explanatory copy that used to fill
-            this panel was removed at the deployment's request, so anchoring the
-            lockup to the top left left it floating above a large empty area. */}
-        <div className="relative flex h-full items-center justify-center p-10 text-white">
-          <div className="flex items-center gap-3">
-            <span
-              className="grid size-9 place-items-center rounded-[8px] font-semibold text-[#2a0810]"
-              style={{ background: 'linear-gradient(160deg,#e3c655,#c9a227)' }}
-              aria-hidden
-            >
-              S
-            </span>
-            <span>
-              <span className="block text-[14px] font-semibold">SCEAI Assistant</span>
-              <span className="block text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
-                Admin console
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
+        aria-hidden
+        className="pointer-events-none absolute -right-40 top-10 size-[520px] rotate-[24deg] border border-white/8"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-44 bottom-0 size-[460px] rotate-[18deg] border border-white/6"
+      />
 
-      {/* Right: the form. */}
-      <div className="flex min-w-0 flex-1 items-center justify-center bg-page px-8 py-12">
-        <div className="w-full max-w-[360px]">
-          <Eyebrow>Sign in</Eyebrow>
-          <h1 className="mt-1 text-[18px] font-semibold text-ink-1">Admin console</h1>
+      <div className="relative w-full max-w-[380px]">
+        {/* Brand above the card. The card header carries "Admin console", so
+            the lockup does not repeat it. */}
+        <div className="flex items-center gap-3 text-white">
+          <span
+            className="grid size-9 place-items-center rounded-[8px] font-semibold text-[#2a0810]"
+            style={{ background: 'linear-gradient(160deg,#e3c655,#c9a227)' }}
+            aria-hidden
+          >
+            S
+          </span>
+          <span className="text-[15px] font-semibold">SCEAI Assistant</span>
+        </div>
+
+        <div className="mt-7">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.09em] text-white/45">
+            Sign in
+          </div>
+          <h1 className="mt-1 text-[18px] font-semibold text-white">Admin console</h1>
           {mock && (
-            <p className="mt-1 text-[12px] text-ink-3">
+            <p className="mt-1 text-[12px] text-white/55">
               Mock mode is on, so any request stays in the browser.
             </p>
           )}
@@ -114,7 +106,7 @@ export default function Login() {
 
           <form
             onSubmit={handleSubmit}
-            className="mt-5 rounded-[10px] border border-line bg-surface p-4"
+            className="mt-4 rounded-[10px] border border-black/20 bg-surface p-4 shadow-menu"
           >
             <div className="flex flex-col gap-3">
               <TextInput
