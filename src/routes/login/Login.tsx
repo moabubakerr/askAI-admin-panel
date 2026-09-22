@@ -56,9 +56,10 @@ export default function Login() {
           aria-hidden
           className="pointer-events-none absolute -left-32 bottom-8 size-[360px] rotate-[18deg] border border-white/6"
         />
-        {/* Brand lockup only. The explanatory copy and the mode/503 links were
-            removed at the deployment's request. */}
-        <div className="relative flex h-full flex-col p-10 text-white">
+        {/* Brand lockup only, centred. The explanatory copy that used to fill
+            this panel was removed at the deployment's request, so anchoring the
+            lockup to the top left left it floating above a large empty area. */}
+        <div className="relative flex h-full items-center justify-center p-10 text-white">
           <div className="flex items-center gap-3">
             <span
               className="grid size-9 place-items-center rounded-[8px] font-semibold text-[#2a0810]"
