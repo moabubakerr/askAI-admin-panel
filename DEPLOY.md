@@ -12,8 +12,24 @@ image builds itself, including the Node toolchain, in a discarded build stage.
 
 ## One-time, before the first deploy
 
-The checkout must be a git clone for `git pull` to work, and the shared network
-must exist:
+Clone into a lowercase directory. The repository is named `askAI-admin-panel`,
+so a bare `git clone` creates `~/askAI-admin-panel` — and on Linux that is a
+different path from the `~/askai-admin-panel` used throughout this file. Passing
+the target directory explicitly settles it:
+
+```
+cd ~
+git clone https://github.com/moabubakerr/askAI-admin-panel.git askai-admin-panel
+cd askai-admin-panel
+```
+
+If you already cloned without the target argument, rename it once:
+
+```
+cd ~ && mv askAI-admin-panel askai-admin-panel && cd askai-admin-panel
+```
+
+The shared network must also exist:
 
 ```
 docker network ls | grep kap_shared_network
@@ -21,6 +37,7 @@ docker network ls | grep kap_shared_network
 
 If that prints nothing, the network is missing and `up` will fail with
 `network kap_shared_network declared as external, but could not be found`.
+Create it with `docker network create kap_shared_network`.
 
 ## Deploy
 
