@@ -169,6 +169,23 @@ forge it, so this is decided server-side. Verified: a request carrying
 `Authorization` is deliberately *not* overwritten — the panel's own bearer token
 has to reach the API.
 
+**As deployed, this API reads no caller-identity header, so the default
+`X-Caller` is inert.** It is left in place as the seam to use if that changes.
+The API identifies callers one of two ways instead:
+
+```
+{"detail":"Sign in at POST /admin/login, or send a valid X-Admin-Key."}
+```
+
+> **Do not put `X-Admin-Key` into the proxy.** Setting
+> `API_CALLER_HEADER=X-Admin-Key` with the real key would make nginx
+> authenticate *every* request that arrives on port 17100. The login screen
+> would stop mattering, and anyone who can reach the port would be an
+> authenticated admin over the whole chat corpus — the exact exposure that the
+> API's 401 currently prevents. The panel signs in properly instead: it calls
+> `POST /admin/login` and sends the returned bearer token, which the proxy
+> passes through untouched.
+
 ## What this exposes — read before publishing on 17100
 
 `/api/` proxies to the **root of the API**, so every route the API serves is
@@ -184,15 +201,21 @@ under Qatar's PDPL.
 
 Three things to be clear about:
 
-1. **The proxy enforces no authentication of its own.** nginx forwards `/api/*`
-   to the API and lets the API decide. The panel has a login screen and sends a
-   bearer token, but that is the panel being polite, not the proxy being a
-   gate. `curl http://localhost:17100/api/admin/messages` on the VM goes straight
-   through, and so does the same call from any host that can route to it.
-   Whether it returns data or a 401 depends entirely on whether the API enforces
-   auth on those routes. **Confirm that before exposing this port.** As of
-   writing this, that has not been verified against the deployed API — no part of
-   this deployment makes it true.
+1. **The proxy enforces no authentication of its own** — the API does. nginx
+   forwards `/api/*` and lets the API decide. Verified against the deployed API
+   on 2026-09-22, unauthenticated and through this proxy:
+
+   ```
+   curl -s -o /dev/null -w '%{http_code}\n' http://localhost:17100/api/admin/stats
+   401
+   curl -s http://localhost:17100/api/admin/me
+   {"detail":"Sign in at POST /admin/login, or send a valid X-Admin-Key."}
+   ```
+
+   So the admin routes are gated, and the panel's login screen is the real
+   gate rather than a decoration. Re-run those two commands after any API
+   deploy: this property belongs to the API, and nothing in this repo keeps it
+   true.
 2. **The identity header is applied to every request through the port**, not
    only to the panel's own. If the API treats `X-Caller` as any kind of
    authorisation, then publishing 17100 hands that identity to anyone who can
