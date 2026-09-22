@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useApp, useQueryScope } from '../../app/AppContext'
 import { groupByTable } from '../../api/mock'
@@ -7,6 +8,7 @@ import { COPY } from '../../copy'
 import { HBar } from '../../components/BarSeries'
 import { CopyDigest } from '../../components/CopyDigest'
 import { EmptyState } from '../../components/EmptyState'
+import { Button, TextInput } from '../../components/controls'
 import { ErrorState, LoadingState } from '../../components/ErrorState'
 import { KpiCard, Panel } from '../../components/KpiCard'
 import { Eyebrow, Mono, StatusPill } from '../../components/StatusPill'
@@ -47,6 +49,26 @@ function LineageBody({ data }: { data: LineagePayload }) {
   // would double-count.
   const groups = useMemo(() => groupByTable(data.tables), [data.tables])
 
+  // ?q= lets the catalogue deep-link a file digest straight to its row.
+  const [params, setParams] = useSearchParams()
+  const q = (params.get('q') ?? '').trim().toLowerCase()
+
+  function setQ(next: string) {
+    const trimmed = next.trim()
+    if (trimmed) setParams({ q: trimmed }, { replace: true })
+    else setParams({}, { replace: true })
+  }
+
+  const matchesFile = (file: (typeof data.tables)[number]) =>
+    !q ||
+    (file.source_file ?? '').toLowerCase().includes(q) ||
+    (file.file_sha256 ?? '').toLowerCase().startsWith(q) ||
+    file.table_name.toLowerCase().includes(q)
+
+  const shown = q ? groups.filter((group) => group.files.some(matchesFile)) : groups
+
+  // The summary tiles are computed from every group, never from the filtered
+  // subset, so they keep agreeing with the load as a whole.
   const rowsInFiles = groups.reduce((sum, group) => sum + group.rows_in_file, 0)
   const rowsInTables = groups.reduce((sum, group) => sum + group.rows_in_table, 0)
   const dropped = rowsInFiles - rowsInTables
@@ -90,9 +112,29 @@ function LineageBody({ data }: { data: LineagePayload }) {
       <Panel
         title="Tables and the files that feed them"
         subtitle={COPY.droppedRowsFootnote}
+        actions={
+          <div className="flex items-end gap-2">
+            <TextInput
+              label="Filter by table, file or digest"
+              value={params.get('q') ?? ''}
+              onChange={(event) => setQ(event.target.value)}
+              placeholder="e.g. a 12-character digest"
+              spellCheck={false}
+              className="w-[248px]"
+            />
+            {q && <Button onClick={() => setQ('')}>Clear</Button>}
+          </div>
+        }
       >
+        {q && (
+          <p className="border-b border-line bg-sunken px-4 py-2 text-[11.5px] text-ink-3">
+            Showing {formatCount(shown.length)} of {formatCount(groups.length)} tables
+            matching <Mono className="text-ink-1">{q}</Mono>. The tiles above still
+            describe the whole load.
+          </p>
+        )}
         <ul className="divide-y divide-line">
-          {groups.map((group) => (
+          {shown.map((group) => (
             <li key={group.table_name} className="px-4 py-3">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
                 <Mono className="text-[12.5px] font-medium text-ink-1">
@@ -158,7 +200,12 @@ function LineageBody({ data }: { data: LineagePayload }) {
                 </thead>
                 <tbody>
                   {group.files.map((file) => (
-                    <tr key={file.source_file} className="border-t border-rowline">
+                    <tr
+                      key={file.source_file}
+                      className={`border-t border-rowline ${
+                        q && matchesFile(file) ? 'bg-gold-tint' : ''
+                      }`}
+                    >
                       <td className="break-all py-1.5 pr-3 text-ink-2">
                         {orDash(file.source_file)}
                       </td>
@@ -187,6 +234,12 @@ function LineageBody({ data }: { data: LineagePayload }) {
             </li>
           ))}
         </ul>
+        {q && shown.length === 0 && (
+          <EmptyState
+            title="Nothing in this load matches that"
+            body="No table name, source file or file digest starts with it. A digest only matches the load it came from, so an older digest will not appear here once the file has been re-cut."
+          />
+        )}
         <p className="border-t border-line px-4 py-2.5 text-[11px] leading-relaxed text-ink-3">
           {COPY.digestFootnote}
         </p>

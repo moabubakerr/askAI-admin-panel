@@ -6,6 +6,7 @@ import { COPY } from '../../copy'
 import { DataTable, KeyboardHint, type Column, type RowTone } from '../../components/DataTable'
 import { TextInput, Toggle } from '../../components/controls'
 import { EmptyState } from '../../components/EmptyState'
+import { IdLookup, looksLikeId } from './IdLookup'
 import { ErrorState, LoadingState } from '../../components/ErrorState'
 import { Panel } from '../../components/KpiCard'
 import { RtlText } from '../../components/RtlText'
@@ -167,14 +168,14 @@ export default function Catalogue() {
         <div className="flex flex-col gap-2.5 px-4 py-3">
           <div className="flex flex-wrap items-end gap-4">
             <TextInput
-              label="Search indicators"
+              label="Search indicators or paste an id"
               value={q}
               onChange={(event) => {
                 setQ(event.target.value)
                 setOffset(0)
               }}
-              placeholder="name, detail or data source"
-              className="w-[280px]"
+              placeholder="name, data source, or an indicator id"
+              className="w-[300px]"
             />
             <div className="pb-1">
               <Toggle
@@ -205,6 +206,8 @@ export default function Catalogue() {
           )}
         </div>
       </Panel>
+
+      {looksLikeId(q) && <IdLookup query={q} />}
 
       <Panel>
         {query.isPending ? (
