@@ -7,22 +7,16 @@ import { TextInput } from '../../components/controls'
 import { Eyebrow } from '../../components/StatusPill'
 
 export default function Login() {
-  const {
-    signIn,
-    apiDisabled,
-    sessionEnded,
-    mock,
-    setMock,
-    clearNotices,
-  } = useApp()
+  const { signIn, apiDisabled, sessionEnded, mock } = useApp()
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [pretendDisabled, setPretendDisabled] = useState(false)
 
-  const disabled = apiDisabled || pretendDisabled
+  // A real 503 from the server still shows the disabled state below; only the
+  // link that simulated it has been removed.
+  const disabled = apiDisabled
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -62,7 +56,9 @@ export default function Login() {
           aria-hidden
           className="pointer-events-none absolute -left-32 bottom-8 size-[360px] rotate-[18deg] border border-white/6"
         />
-        <div className="relative flex h-full flex-col justify-between p-10 text-white">
+        {/* Brand lockup only. The explanatory copy and the mode/503 links were
+            removed at the deployment's request. */}
+        <div className="relative flex h-full flex-col p-10 text-white">
           <div className="flex items-center gap-3">
             <span
               className="grid size-9 place-items-center rounded-[8px] font-semibold text-[#2a0810]"
@@ -78,21 +74,6 @@ export default function Login() {
               </span>
             </span>
           </div>
-
-          <div className="max-w-md">
-            <h2 className="text-[26px] font-semibold leading-[1.25] tracking-tight">
-              Every answer traced back to the spreadsheet it came from.
-            </h2>
-            <p className="mt-3 text-[12.5px] leading-relaxed text-white/60">
-              This console reads the assistant's own record: what was asked, what was
-              answered, which published figures were cited, and which of those rows
-              still exist. It makes no changes to the data.
-            </p>
-          </div>
-
-          <p className="text-[11px] text-white/35">
-            Conversation records contain personal data. Access is logged.
-          </p>
         </div>
       </div>
 
@@ -101,11 +82,11 @@ export default function Login() {
         <div className="w-full max-w-[360px]">
           <Eyebrow>Sign in</Eyebrow>
           <h1 className="mt-1 text-[18px] font-semibold text-ink-1">Admin console</h1>
-          <p className="mt-1 text-[12px] text-ink-3">
-            {mock
-              ? 'Mock mode is on, so any request stays in the browser.'
-              : 'Live mode: this signs in against the API through /api on this origin.'}
-          </p>
+          {mock && (
+            <p className="mt-1 text-[12px] text-ink-3">
+              Mock mode is on, so any request stays in the browser.
+            </p>
+          )}
 
           {sessionEnded && (
             <div
@@ -127,15 +108,6 @@ export default function Login() {
               <p className="mt-1 text-[11.5px] leading-relaxed text-ink-2">
                 {COPY.apiDisabledBody}
               </p>
-              {pretendDisabled && (
-                <button
-                  type="button"
-                  onClick={() => setPretendDisabled(false)}
-                  className="mt-2 text-[11px] font-medium text-gold-ink underline"
-                >
-                  Leave the simulated state
-                </button>
-              )}
             </div>
           )}
 
@@ -179,44 +151,14 @@ export default function Login() {
               {submitting ? 'Signing in…' : 'Sign in'}
             </button>
 
-            <p className="mt-3 text-[11px] leading-relaxed text-ink-3">
-              {mock ? (
-                <>
-                  Demo credentials for mock mode:{' '}
-                  <span className="font-mono text-[11px] text-ink-2">{MOCK_USERNAME}</span>{' '}
-                  /{' '}
-                  <span className="font-mono text-[11px] text-ink-2">{MOCK_PASSWORD}</span>
-                </>
-              ) : (
-                'Use your admin credentials for this deployment.'
-              )}
-            </p>
+            {mock && (
+              <p className="mt-3 text-[11px] leading-relaxed text-ink-3">
+                Demo credentials for mock mode:{' '}
+                <span className="font-mono text-[11px] text-ink-2">{MOCK_USERNAME}</span>{' '}
+                / <span className="font-mono text-[11px] text-ink-2">{MOCK_PASSWORD}</span>
+              </p>
+            )}
           </form>
-
-          <div className="mt-4 flex flex-col gap-1.5 text-[11px]">
-            <button
-              type="button"
-              onClick={() => {
-                setMock(!mock)
-                setError(null)
-                setPretendDisabled(false)
-                clearNotices()
-              }}
-              className="self-start text-ink-3 underline hover:text-ink-1"
-            >
-              {mock ? 'Switch to the live API' : 'Return to mock data'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPretendDisabled(true)
-                setError(null)
-              }}
-              className="self-start text-ink-4 underline hover:text-ink-2"
-            >
-              Show the 503 admin-API-disabled state
-            </button>
-          </div>
         </div>
       </div>
     </div>
